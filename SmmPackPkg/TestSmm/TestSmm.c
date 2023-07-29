@@ -77,18 +77,18 @@ SmmEntryPoint (
 
 
   // 
-  // 2: Use SmmPackSmmProtocol
+  // 2: Use SmmPackProtocol
   //
-  EFI_SMM_PACK_SMM_PROTOCOL *SmmPackSmmProtocol;
+  EFI_SMM_PACK_PROTOCOL *SmmPackProtocol;
   Status = Smst->SmmLocateProtocol(
-      &gEfiSmmPackSmmProtocolGuid,
+      &gEfiSmmPackProtocolGuid,
       NULL,
-      (VOID**)&SmmPackSmmProtocol
+      (VOID**)&SmmPackProtocol
       );
   if(Status!=EFI_SUCCESS)
-    UartPrint("SmmLocateProtocol (SmmPackSmmProtocol) error %d\r\n", Status);
+    UartPrint("SmmLocateProtocol (SmmPackProtocol) error %d\r\n", Status);
 
-  Status = SmmPackSmmProtocol->Unpack(
+  Status = SmmPackProtocol->Unpack(
       buf,
       0x10
       );

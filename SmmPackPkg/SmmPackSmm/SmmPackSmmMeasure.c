@@ -16,7 +16,7 @@ Measure tGetKey = {0};
 
 /**
  
- Unpack function of SmmPackSmmProtocol.
+ Unpack function of SmmPackProtocol.
  This decrypts DataSize-sized data starting from DataAddr by AES-128
  using Key defined above (which is the key retrieved from TPM).
 
@@ -46,7 +46,7 @@ Unpack (
 }
 
 EFI_HANDLE mSmmPackHandle = NULL;
-EFI_SMM_PACK_SMM_PROTOCOL mSmmPack = {
+EFI_SMM_PACK_PROTOCOL mSmmPack = {
   Unpack
 };
 
@@ -181,7 +181,7 @@ GetTpmKey (
  
  Driver's entry point.
  This first reads key from TPM and stores it in global variable.
- Then, installs SmmPackSmmProtocol for other SMM mods to use when unpacking them self.
+ Then, installs SmmPackProtocol for other SMM mods to use when unpacking them self.
 
  @param[in]  ImageHandle  The firmware allocated handle for the EFI image
  @param[in]  SystemTable  A pointer to the EFI System Table.
@@ -213,11 +213,11 @@ SmmEntryPoint (
   MeasureEnd(&tGetKey);
 
   // 
-  // 2: Install SmmPackSmmProtocol
+  // 2: Install SmmPackProtocol
   //
   Status = gSmst->SmmInstallProtocolInterface(
       &mSmmPackHandle,
-      &gEfiSmmPackSmmProtocolGuid,
+      &gEfiSmmPackProtocolGuid,
       EFI_NATIVE_INTERFACE,
       &mSmmPack
       );

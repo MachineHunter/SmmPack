@@ -11,24 +11,24 @@
 
 /**
  
-  Define SmmPackSmmProtocol's general information.
+  Define SmmPackProtocol's general information.
 
 **/
 
 // 78fe40fb-fd3e-45bb-8fff-f35d78383db9
-#define EFI_SMM_PACK_SMM_PROTOCOL_GUID \
+#define EFI_SMM_PACK_PROTOCOL_GUID \
   { 0x78fe40fb, 0xfd3e, 0x45bb, { 0x8f, 0xff, 0xf3, 0x5d, 0x78, 0x38, 0x3d, 0xb9 } }
 
-extern EFI_GUID gEfiSmmPackSmmProtocolGuid;
+extern EFI_GUID gEfiSmmPackProtocolGuid;
 
 typedef EFI_STATUS (EFIAPI *UNPACK)(
     IN VOID *DataAddr,
     IN UINT32 DataSize
     );
 
-typedef struct _EFI_SMM_PACK_SMM_PROTOCOL {
+typedef struct _EFI_SMM_PACK_PROTOCOL {
   UNPACK Unpack;
-} EFI_SMM_PACK_SMM_PROTOCOL;
+} EFI_SMM_PACK_PROTOCOL;
 
 
 
