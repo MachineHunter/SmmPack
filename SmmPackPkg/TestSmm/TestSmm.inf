@@ -1,0 +1,36 @@
+[Defines]
+  INF_VERSION                    = 1.29
+  BASE_NAME                      = TestSmm
+  FILE_GUID                      = 6f24650a-7d56-4893-8df7-aac93e210ad4
+  MODULE_TYPE                    = DXE_SMM_DRIVER
+  VERSION_STRING                 = 1.0
+  ENTRY_POINT                    = SmmEntryPoint
+  PI_SPECIFICATION_VERSION       = 0x00010046                            # PI-1.7.0
+
+[Sources]
+  UartPrint.h
+  UartPrint.c
+  TestSmm.c
+  # TestSmmMeasure.c
+
+[Packages]
+  MdePkg/MdePkg.dec
+  MdeModulePkg/MdeModulePkg.dec
+  SecurityPkg/SecurityPkg.dec
+  SmmPackPkg/SmmPackPkg.dec
+
+[LibraryClasses]
+  UefiDriverEntryPoint
+  UefiLib
+  PrintLib
+  MmServicesTableLib
+  SmmServicesTableLib
+  IoLib
+  Tpm2DeviceLib
+
+[Protocols]
+  gEfiSmmPackSmmProtocolGuid   ## CONSUMES
+  gEfiMmCpuIoProtocolGuid       ## CONSUMES
+
+[Depex]
+  gEfiMmCpuIoProtocolGuid

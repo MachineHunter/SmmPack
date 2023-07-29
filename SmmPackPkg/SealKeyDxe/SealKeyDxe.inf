@@ -1,0 +1,33 @@
+[Defines]
+  INF_VERSION                    = 0x00010006
+  BASE_NAME                      = SealKeyDxe
+  FILE_GUID                      = 9d46dccd-ea11-4808-93e9-9b7021889b2d
+  MODULE_TYPE                    = DXE_DRIVER
+  VERSION_STRING                 = 1.0
+  ENTRY_POINT                    = DriverEntry
+
+[Sources]
+  SealKeyDxe.h
+  SealKeyDxe.c
+  SealKeyImpl.h
+  SealKeyImpl.c
+
+[Packages]
+  MdePkg/MdePkg.dec
+  MdeModulePkg/MdeModulePkg.dec
+  SecurityPkg/SecurityPkg.dec
+
+[LibraryClasses]
+  UefiDriverEntryPoint
+  UefiRuntimeServicesTableLib
+  UefiBootServicesTableLib
+  UefiLib
+  PrintLib
+  IoLib
+  Tpm2DeviceLib
+  TimerLib
+
+[Protocols]
+
+[Depex]
+  TRUE
