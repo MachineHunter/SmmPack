@@ -104,17 +104,15 @@ void ShiftAddrOfHeaders(PE* pe, UCHAR* lpTargetBinBuffer, UINT* sizeIncrease, WC
 	tmp[strlen(tmp) - 1] = '\00';
 
 	// !!! MAKE SURE TO CHANGE THESE PATH !!!
-	strcat_s(cmdline, "C:\\Users\\kazu3\\Desktop\\Tools\\ghidra_10.1.3_PUBLIC\\support\\analyzeHeadless.bat ");
-	// strcat_s(cmdline, "path\\to\\ghidra\\analyzeHeadless ");
+	strcat_s(cmdline, "path\\to\\ghidra\\analyzeHeadless ");
 	strcat_s(cmdline, tmp);
 	strcat_s(cmdline, " smmpacktempproject");
 	strcat_s(cmdline, " -import ");
 	strcat_s(cmdline, "<path of efi files to be packed>");
 	strcat_s(cmdline, " -scriptPath");
-	strcat_s(cmdline, " C:\\Users\\kazu3\\Documents\\SmmPack\\ghidra_scripts");
-	// strcat_s(cmdline, " path\\to\\ghidra_scripts");
+	strcat_s(cmdline, " path\\to\\ghidra_scripts");
 	strcat_s(cmdline, " -postScript");
-	strcat_s(cmdline, " GetSmmProtocolInterfaceStructureAddress.java");
+	strcat_s(cmdline, " GetProtocolInterfaceStructureAddress.java");
 	DbgPrint("%s", cmdline);
 	std::system(cmdline);
 
