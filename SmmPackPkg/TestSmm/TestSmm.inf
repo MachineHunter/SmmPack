@@ -29,8 +29,9 @@
   Tpm2DeviceLib
 
 [Protocols]
-  gEfiSmmPackSmmProtocolGuid   ## CONSUMES
+  gEfiSmmPackProtocolGuid   ## CONSUMES
   gEfiMmCpuIoProtocolGuid       ## CONSUMES
+  gEfiTestSmmProtocolGuid       ## PRODUCES
 
 [Depex]
   gEfiMmCpuIoProtocolGuid

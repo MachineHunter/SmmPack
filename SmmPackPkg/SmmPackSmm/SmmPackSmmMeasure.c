@@ -20,8 +20,8 @@ Measure tGetKey = {0};
  This decrypts DataSize-sized data starting from DataAddr by AES-128
  using Key defined above (which is the key retrieved from TPM).
 
- @param[in]  DataAddr  .text section base address of packed Smm module
- @param[in]  DataSize  .text section size of packed Smm module
+ @param[in]  DataAddr  .text section base address of packed Dxe Driver
+ @param[in]  DataSize  .text section size of packed Dxe Driver
 
 **/
 EFI_STATUS

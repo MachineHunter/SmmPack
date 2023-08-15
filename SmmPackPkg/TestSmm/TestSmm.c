@@ -1,8 +1,20 @@
-#include <Protocol/SmmBase2.h>
-#include <SmmPackSmm/SmmPackSmm.h>
+#include "TestSmm.h"
+
+EFI_STATUS
+EFIAPI
+TestSmmPrint () {
+  UartPrint("TestSmmPrint called!!\n");
+  return EFI_SUCCESS;
+}
+
+EFI_HANDLE mTestHandle = NULL;
+EFI_TEST_SMM_PROTOCOL mTest = {
+  TestSmmPrint
+};
 
 
 EFI_MM_CPU_IO_PROTOCOL *mMmCpuIo;
+EFI_SMM_SYSTEM_TABLE2  *Smst;
 
 
 
@@ -59,7 +71,6 @@ SmmEntryPoint (
   // 1: Get SMST
   //
   EFI_SMM_BASE2_PROTOCOL *SmmBase2Protocol;
-  EFI_SMM_SYSTEM_TABLE2  *Smst;
   Status = SystemTable->BootServices->LocateProtocol(
       &gEfiSmmBase2ProtocolGuid,
       0x0,
@@ -133,6 +144,20 @@ SmmEntryPoint (
       );
   if(Status!=EFI_SUCCESS)
     UartPrint("SmiHandlerRegister error %d\r\n", Status);
+
+
+  //
+  // 5: Register test SMM protocol
+  //
+  Status = Smst->SmmInstallProtocolInterface(
+      &mTestHandle,
+      &gEfiTestSmmProtocolGuid,
+      EFI_NATIVE_INTERFACE,
+      &mTest
+      );
+  if(Status!=EFI_SUCCESS) {
+    UartPrint("SmmInstallProtocolInterface failed with %d\r\n", Status);
+  }
 
 
   UartPrint("<<< TestSmm Ended\r\n");

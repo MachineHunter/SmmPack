@@ -50,13 +50,5 @@
 
 [Components]
   SmmPackPkg/TestSmm/TestSmm.inf
-  # SmmPackPkg/ProtocolTestSmm/ProtocolTestSmm.inf
-  # SmmPackPkg/UartTestDxe/UartTestDxe.inf
   SmmPackPkg/SmmPackSmm/SmmPackSmm.inf
-  # SmmPackPkg/ReadPcrDxe/ReadPcrDxe.inf
-  # SmmPackPkg/ReadPcrDxe2/ReadPcrDxe2.inf
-  # SmmPackPkg/SealKeyDxe/SealKeyDxe.inf
-  # SmmPackPkg/SealKeyDxe/ConOutAsDebug/SealKeyDxe.inf
-  # SmmPackPkg/SmmPackDxe/SmmPackDxe.inf
-  # SmmPackPkg/TestDxe/TestDxe.inf
-  # SmmPackPkg/SmmPackDxe/ConOutAsDebug/SmmPackDxe.inf
+  SmmPackPkg/SealKeyDxe/SealKeyDxe.inf

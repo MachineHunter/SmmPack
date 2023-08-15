@@ -3,7 +3,7 @@
 
 UINT16 KeyLength = 16;   // AES-128 key so 128bit=16bytes
 BYTE   Key[16]   = {0};  // REMEMBER when changing KeyLength, change ORIG_MAX_NV_BUFFER in typedef too!
-BYTE   IV[16]    = {0};
+BYTE   IV[16]    = { 0x00, 0x11, 0x22, 0x33, 0x44, 0x55, 0x66, 0x77, 0x88, 0x99, 0xaa, 0xbb, 0xcc, 0xdd, 0xee, 0xff };
 
 int i,j;
 
@@ -15,8 +15,8 @@ int i,j;
  This decrypts DataSize-sized data starting from DataAddr by AES-128
  using Key defined above (which is the key retrieved from TPM).
 
- @param[in]  DataAddr  .text section base address of packed Smm module
- @param[in]  DataSize  .text section size of packed Smm module
+ @param[in]  DataAddr  .text section base address of packed Dxe Driver
+ @param[in]  DataSize  .text section size of packed Dxe Driver
 
 **/
 EFI_STATUS

@@ -23,7 +23,10 @@ Encrypts SMM Modules by AES-128 using key sealed in TPM2.0 device.
 ### SmmPackPkg
 1. Setup edk2
 2. Copy `SmmPackPkg` as `edk2/SmmPackPkg`
-3. In `edk2/Conf/target.txt`, edit `ACTIVE_PLATFORM` to `SmmPackPkg/SmmPackPkg.dsc`
+3. In `edk2/Conf/target.txt`, edit below
+  * `ACTIVE_PLATFORM` to `SmmPackPkg/SmmPackPkg.dsc`
+  * `TARGET_ARCH` to `X64`
+  * `TOOL_CHAIN_TAG` to `GCC5`
 4. Select which modules to build by editing `SmmPackPkg/SmmPackPkg.dsc`
 5. `build`
 

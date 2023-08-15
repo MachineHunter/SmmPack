@@ -13,8 +13,8 @@
   SmmPackImpl.h
   SmmPackImpl.c
   SmmPackSmm.h
-  # SmmPackSmm.c
-  SmmPackSmmMeasure.c
+  SmmPackSmm.c
+  # SmmPackSmmMeasure.c
   tiny-AES-c/aes.h
   tiny-AES-c/aes.c
   Measure.h
