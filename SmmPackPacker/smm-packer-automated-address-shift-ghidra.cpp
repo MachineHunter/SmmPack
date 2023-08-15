@@ -106,7 +106,7 @@ void ShiftAddrOfHeaders(PE* pe, UCHAR* lpTargetBinBuffer, UINT* sizeIncrease, WC
 	// !!! MAKE SURE TO CHANGE THESE PATH !!!
 	strcat_s(cmdline, "path\\to\\ghidra\\analyzeHeadless ");
 	strcat_s(cmdline, tmp);
-	strcat_s(cmdline, " uefipacktempproject");
+	strcat_s(cmdline, " smmpacktempproject");
 	strcat_s(cmdline, " -import ");
 	strcat_s(cmdline, "<path of efi files to be packed>");
 	strcat_s(cmdline, " -scriptPath");
@@ -131,11 +131,11 @@ void ShiftAddrOfHeaders(PE* pe, UCHAR* lpTargetBinBuffer, UINT* sizeIncrease, WC
 		DeleteFileA(tmp);
 		ZeroMemory(tmp, MAX_PATH);
 		GetTempPathA(MAX_PATH, tmp);
-		strcat_s(tmp, "\\uefipacktempproject.gpr");
+		strcat_s(tmp, "\\smmpacktempproject.gpr");
 		DeleteFileA(tmp);
 		ZeroMemory(tmp, MAX_PATH);
 		GetTempPathA(MAX_PATH, tmp);
-		strcat_s(tmp, "\\uefipacktempproject.rep");
+		strcat_s(tmp, "\\smmpacktempproject.rep");
 		char cmd[MAX_PATH];
 		strcpy_s(cmd, "rmdir /s /q ");
 		strcat_s(cmd, tmp);
@@ -190,7 +190,7 @@ void FindSection(PE* pe, SectionConfig* target, SectionConfig* ext) {
 }
 
 uint8_t aes128key[16] = {
-	0xa7, 0xe3, 0xf1, 0x2b, 0xa2, 0xc4, 0x9f, 0x8e, 0x77, 0x61, 0x68, 0x2c, 0x50, 0x40, 0xbd, 0x10
+	0x25, 0x87, 0xbf, 0x7f, 0x62, 0x59, 0x9c, 0x55, 0x4f, 0x6f, 0x34, 0xce, 0x97, 0xb4, 0x6f, 0x07
 };
 
 uint8_t iv[16] = {
@@ -213,42 +213,63 @@ void aes_encrypt(UCHAR* start, DWORD size) {
 
 
 UCHAR decodeStub[] = {
-	// UefiPackProtocol GUID  (16 bytes)
-	0x16, 0x93, 0xc2, 0x73,
-	0xcd, 0x3e,
-	0xe3, 0x4f,
-	0xa4, 0xbb, 0x5e, 0xf7, 0xff, 0xca, 0x82, 0xfb,
+	// SmmBase2Protocol GUID  (16 bytes)
+	0xb7, 0xbf, 0xcc, 0xf4,
+	0xe0, 0xf6,
+	0xfd, 0x47,
+	0x9d, 0xd4, 0x10, 0xa8, 0xf1, 0x50, 0xc1, 0x91,
+
+	// UefiPackSmmProtocol GUID  (16 bytes)
+	0xfb, 0x40, 0xfe, 0x78,
+	0x3e, 0xfd,
+	0xbb, 0x45,
+	0x8f, 0xff, 0xf3, 0x5d, 0x78, 0x38, 0x3d, 0xb9,
 
 	// EfiMain
-	0x90, 0x90,                                                       // 2 deadloop for debug (eb fe)
-	0x50, 0x51, 0x52, 0x53, 0x54, 0x55, 0x56, 0x57,                   // 8 push registers
-	0x48, 0x83, 0xec, 0x48,                                           // 4 sub rsp, 0x48
-	0x48, 0x89, 0xd3,                                                 // 3 mov rbx, SystemTable(rdx)
-	0x48, 0x8b, 0x43, 0x60,                                           // 4 mov rax, [rbx+0x60] <= gBS=SystemTable->BootServices
-	0xE8, 0x00, 0x00, 0x00, 0x00,                                     // 5 call $+5
-	0x5b,                                                             // 1 pop rbx             <= current instruction address will be set to rbx
-	0x48, 0x89, 0xd9,                                                 // 3 mov rcx, rbx        <= UefiPackProtocol GUID address as 1st argument
-	0x48, 0x81, 0xE9, 0xFF, 0xFF, 0xFF, 0xFF,                         // 7 sub rcx, <offset1>  <= rcx will contain base addr of decodeStub (&gUefiPackProtocolGuid)
-	0x48, 0x81, 0xEB, 0xFF, 0xFF, 0xFF, 0xFF,                         // 7 sub rbx, <offset2>  <= rbx will contain base addr of this module (ImageBase)
-	0x48, 0x31, 0xD2,                                                 // 3 xor rdx, rdx 
-	0x4c, 0x8d, 0x44, 0x24, 0x38,                                     // 5 lea r8, [rsp+0x38]  <= allocate stack for handle of UefiPackProtocol
-	0x4c, 0x8d, 0x44, 0x24, 0x38, 0xff, 0x90, 0x40, 0x01, 0x00, 0x00, // 11 call [rax+0x140]   <= call gBS->LocateProtocol(gUefiPackProtocolGuid, NULL, &hUefiPackProtocol)
-	0x48, 0x8b, 0x44, 0x24, 0x38,                                     // 5 mov rax, [rsp+0x38] <= hUefiPackProtocol set to rax
-	0x48, 0xB9, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,       // 10 mov rcx, <DecryptAddr>
-	0x48, 0x01, 0xD9,                                                 // 3 add rcx, rbx        <= DecryptAddr to absolute addr
-	0x48, 0xBA, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,       // 10 mov rdx, <DecryptSize>
-	0xff, 0x10,                                                       // 2 call rax            <= call hUefiPackProtocol->Unpack(DecryptAddr, DecryptSize)
-	0x48, 0x83, 0xc4, 0x48,                                           // 4 add rsp, 0x48
-	0x5F, 0x5E, 0x5D, 0x5C, 0x5B, 0x5A, 0x59, 0x58,                   // 8 pop registers
-	0xE9, 0xF9, 0xFF, 0xFF, 0xFF                                      // 5 jmp to <Oep>
+	0x90, 0x90,                                                  // 2 deadloop for debug (eb fe)
+	0x50, 0x51, 0x52, 0x53, 0x54, 0x55, 0x56, 0x57,              // 8 push registers
+	0x48, 0x83, 0xec, 0x58,                                      // 4 sub rsp, 0x58
+	0x48, 0x89, 0xd3,                                            // 3 mov rbx, SystemTable(rdx)
+	0x48, 0x8b, 0x43, 0x60,                                      // 4 mov rax, [rbx+0x60] <= gBS=SystemTable->BootServices
+	0xE8, 0x00, 0x00, 0x00, 0x00,                                // 5 call $+5
+	0x5b,                                                        // 1 pop rbx             <= current instruction address will be set to rbx
+	0x48, 0x89, 0xd9,                                            // 3 mov rcx, rbx
+	0x48, 0x81, 0xE9, 0xFF, 0xFF, 0xFF, 0xFF,                    // 7 sub rcx, <offset1>  <= rcx will contain base addr of decodeStub (&gSmmBase2ProtocolGuid)
+	0x48, 0x81, 0xEB, 0xFF, 0xFF, 0xFF, 0xFF,                    // 7 sub rbx, <offset2>  <= rbx will contain base addr of this module (ImageBase)
+	0x53,                                                        // 1 push rbx
+	0x51,                                                        // 1 push rcx
+	0x48, 0x31, 0xD2,                                            // 3 xor rdx, rdx 
+	0x4c, 0x8d, 0x44, 0x24, 0x28,                                // 5 lea r8, [rsp+0x28]  <= allocate stack for handle of SmmBase2Protocol
+	0x48, 0x83, 0xEC, 0x18,                                      // 4 sub rsp, 0x18       <= somehow LocateProtocol overwrites [rsp] to [rsp+0x10]
+	0xff, 0x90, 0x40, 0x01, 0x00, 0x00,                          // 6 call [rax+0x140]    <= call gBS->LocateProtocol(gSmmBase2ProtocolGuid, NULL, &hSmmBase2Protocol)
+	0x48, 0x83, 0xC4, 0x18,                                      // 4 add rsp, 0x18
+	0x48, 0x8b, 0x44, 0x24, 0x28,                                // 5 mov rax, [rsp+0x28] <= hSmmBase2Protocol set to rax
+	0x48, 0x89, 0xC1,                                            // 3 mov rcx, rax        <= This as 1st arg
+	0x48, 0x8D, 0x54, 0x24, 0x30,                                // 5 lea rdx, [rsp+0x30] <= allocate stack for hSmst
+	0xFF, 0x50, 0x08,                                            // 3 call [rax+0x8]      <= call hSmmBase2Protocol->GetSmstLocation(hSmmBase2Protocol, &hSmst)
+	0x48, 0x8B, 0x44, 0x24, 0x30,                                // 5 mov rax, [rsp+0x30] <= hSmst set to rax
+	0x59,                                                        // 1 pop rcx             <= rcx will contain base addr of decodeStub (&gSmmBase2ProtocolGuid)
+	0x48, 0x83, 0xC1, 0x10,                                      // 4 add rcx, 0x10       <= rcx will contain &gUefiPackProtocolGuid
+	0x48, 0x31, 0xD2,                                            // 3 xor rdx, rdx
+	0x4C, 0x8D, 0x44, 0x24, 0x38,                                // 5 lea r8, [rsp+0x38]  <= allocate stack for handle of UefiPackProtocol
+	0xFF, 0x90, 0xD0, 0x00, 0x00, 0x00,                          // 6 call [rax+0xd0]     <= call hSmst->SmmLocateProtocol(&gUefiPackProtocolGuid, NULL, hUefiPackProtocol)
+	0x48, 0x8B, 0x44, 0x24, 0x38,                                // 5 mov rax, [rsp+0x38] <= hUefiPackProtocol set to rax
+	0x5B,                                                        // 1 pop rbx             <= rbx will contain base addr of this module (ImageBase)
+	0x48, 0xB9, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,  // 10 mov rcx, <DecryptAddr>
+	0x48, 0x01, 0xD9,                                            // 3 add rcx, rbx        <= DecryptAddr to absolute addr
+	0x48, 0xBA, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,  // 10 mov rdx, <DecryptSize>
+	0xff, 0x10,                                                  // 2 call rax            <= call hUefiPackProtocol->Unpack(DecryptAddr, DecryptSize)
+	0x48, 0x83, 0xc4, 0x58,                                      // 4 add rsp, 0x58
+	0x5F, 0x5E, 0x5D, 0x5C, 0x5B, 0x5A, 0x59, 0x58,              // 8 pop registers
+	0xE9, 0xF9, 0xFF, 0xFF, 0xFF                                 // 5 jmp to <Oep>
 };
 
 UINT extEfiMainOffset = 0;
 void CreateDecodeStub(QWORD SectionVaddr, QWORD SectionVsize, QWORD oep, QWORD extRaddr, DWORD decodeStubOffset) {
-	extEfiMainOffset = 15;
+	extEfiMainOffset = 31;
 	UINT offset1Offset = extEfiMainOffset + 2 + 8 + 4 + 3 + 4 + 5 + 1 + 3 + 4;
 	UINT offset2Offset = offset1Offset + 3 + 4;
-	UINT DecryptAddrOffset = offset2Offset + 3 + 3 + 5 + 11 + 5 + 3;
+	UINT DecryptAddrOffset = offset2Offset + 3 + 1 + 1 + 3 + 5 + 4 + 6 + 4 + 5 + 3 + 5 + 3 + 5 + 1 + 4 + 3 + 5 + 6 + 5 + 1 + 3;
 	UINT DecryptSizeOffset = DecryptAddrOffset + 7 + 3 + 3;
 	UINT OepOffset = DecryptSizeOffset + 7 + 2 + 4 + 8 + 2;
 
@@ -406,7 +427,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	DWORD dwTargetBinSize;
 	UCHAR* lpTargetBinBuffer;
 	UINT extSize = 2200;
-	UINT extHeaderSize = 0x28; // sizeof(IMAGE_SECTION_HEADER) Æ¯¶
+	UINT extHeaderSize = 0x28; // sizeof(IMAGE_SECTION_HEADER) Æ¯¶
 	UINT sizeIncrease = 0;
 	lpTargetBinBuffer = ReadTargetFile(lpTargetFilename, &dwTargetBinSize, extSize, extHeaderSize);
 	DbgPrint("lpTargetBinBuffer: 0x%I64X", lpTargetBinBuffer);

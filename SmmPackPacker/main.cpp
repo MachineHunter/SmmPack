@@ -94,25 +94,27 @@ void ShiftAddrOfHeaders(PE* pe, UCHAR* lpTargetBinBuffer, UINT* sizeIncrease, WC
 	//  - this executes headless ghidra scripts to locate protocol interface strcture
 	//  - the script outputs the protocol function addresses to %TEMP%/output.txt
 	//  - this packer will read the addresses from the file and delete it
-	char cmdline[5000] = {0};
+	char cmdline[5000] = { 0 };
 	GetEnvironmentVariableA("USERPROFILE", cmdline, MAX_PATH);
 	char targetfile[MAX_PATH];
 	size_t retbuf[100];
-	wcstombs_s(retbuf, targetfile, (const wchar_t *)lpTargetFilename, sizeof(wchar_t)*wcslen(lpTargetFilename));
+	wcstombs_s(retbuf, targetfile, (const wchar_t*)lpTargetFilename, sizeof(wchar_t) * wcslen(lpTargetFilename));
 	char tmp[MAX_PATH];
 	GetTempPathA(MAX_PATH, tmp);
 	tmp[strlen(tmp) - 1] = '\00';
 
 	// !!! MAKE SURE TO CHANGE THESE PATH !!!
-	strcat_s(cmdline, "path\\to\\ghidra\\analyzeHeadless ");
+	strcat_s(cmdline, "C:\\Users\\kazu3\\Desktop\\Tools\\ghidra_10.1.3_PUBLIC\\support\\analyzeHeadless.bat ");
+	// strcat_s(cmdline, "path\\to\\ghidra\\analyzeHeadless ");
 	strcat_s(cmdline, tmp);
 	strcat_s(cmdline, " smmpacktempproject");
 	strcat_s(cmdline, " -import ");
 	strcat_s(cmdline, "<path of efi files to be packed>");
 	strcat_s(cmdline, " -scriptPath");
-	strcat_s(cmdline, " path\\to\\ghidra_scripts");
+	strcat_s(cmdline, " C:\\Users\\kazu3\\Documents\\SmmPack\\ghidra_scripts");
+	// strcat_s(cmdline, " path\\to\\ghidra_scripts");
 	strcat_s(cmdline, " -postScript");
-	strcat_s(cmdline, " GetProtocolInterfaceStructureAddress.java");
+	strcat_s(cmdline, " GetSmmProtocolInterfaceStructureAddress.java");
 	DbgPrint("%s", cmdline);
 	std::system(cmdline);
 
@@ -122,7 +124,7 @@ void ShiftAddrOfHeaders(PE* pe, UCHAR* lpTargetBinBuffer, UINT* sizeIncrease, WC
 		std::ifstream f(tmp);
 		while (getline(f, line)) {
 			QWORD protocolFuncAddr = std::stoull(line);
-			protocolFuncAddr += ( (QWORD)lpTargetBinBuffer + *sizeIncrease );
+			protocolFuncAddr += ((QWORD)lpTargetBinBuffer + *sizeIncrease);
 			*(QWORD*)protocolFuncAddr += *sizeIncrease;
 			DbgPrint("0x%I64X shifted to %X", protocolFuncAddr, *(QWORD*)protocolFuncAddr);
 		}
@@ -190,7 +192,7 @@ void FindSection(PE* pe, SectionConfig* target, SectionConfig* ext) {
 }
 
 uint8_t aes128key[16] = {
-	0xa7, 0xe3, 0xf1, 0x2b, 0xa2, 0xc4, 0x9f, 0x8e, 0x77, 0x61, 0x68, 0x2c, 0x50, 0x40, 0xbd, 0x10
+	0x25, 0x87, 0xbf, 0x7f, 0x62, 0x59, 0x9c, 0x55, 0x4f, 0x6f, 0x34, 0xce, 0x97, 0xb4, 0x6f, 0x07
 };
 
 uint8_t iv[16] = {
@@ -427,7 +429,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	DWORD dwTargetBinSize;
 	UCHAR* lpTargetBinBuffer;
 	UINT extSize = 2200;
-	UINT extHeaderSize = 0x28; // sizeof(IMAGE_SECTION_HEADER) Æ¯¶
+	UINT extHeaderSize = 0x28; // sizeof(IMAGE_SECTION_HEADER) Æ¯¶
 	UINT sizeIncrease = 0;
 	lpTargetBinBuffer = ReadTargetFile(lpTargetFilename, &dwTargetBinSize, extSize, extHeaderSize);
 	DbgPrint("lpTargetBinBuffer: 0x%I64X", lpTargetBinBuffer);
